@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmIaBot.com - Can You Tell?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 20px;
+        }
+
+        .screen {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Landing Screen */
+        .landing {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .description {
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Matching Screen */
+        .matching {
+            text-align: center;
+            padding: 80px 40px;
+            min-height: 400px;
+        }
+
+        .matching-animation {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .matching-animation .dot {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 50%;
+            position: absolute;
+            animation: orbit 1.5s infinite ease-in-out;
+        }
+
+        .matching-animation .dot:nth-child(1) {
+            top: 0;
+            left: 40px;
+            animation-delay: 0s;
+        }
+
+        .matching-animation .dot:nth-child(2) {
+            top: 40px;
+            right: 0;
+            animation-delay: 0.3s;
+        }
+
+        .matching-animation .dot:nth-child(3) {
+            bottom: 0;
+            left: 40px;
+            animation-delay: 0.6s;
+        }
+
+        .matching-animation .dot:nth-child(4) {
+            top: 40px;
+            left: 0;
+            animation-delay: 0.9s;
+        }
+
+        @keyframes orbit {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+
+        .matching-text {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .matching-status {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* Role Assignment Screen */
+        .role-assignment {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        .role-badge.detective {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .role-badge.responder {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .role-description {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .role-timer {
+            font-size: 1rem;
+            color: #888;
+        }
+
+        /* Chat Screen */
+        .chat-screen {
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .role-indicator {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-display.warning {
+            color: #ffeb3b;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.other {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.other .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .typing-indicator {
+            padding: 15px 20px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e0e0e0;
+            display: inline-block;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .typing-indicator.active {
+            display: inline-block;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .end-early-btn {
+            margin-top: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .end-early-btn:hover {
+            background: #ff5252;
+        }
+
+        /* Decision Screen */
+        .decision-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .decision-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+
+        .decision-buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .decision-btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 30px;
+            border: 3px solid #e0e0e0;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .decision-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .decision-btn.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .decision-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .decision-label {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .submit-guess-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-guess-btn.active {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .submit-guess-btn.active:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Results Screen */
+        .results-screen {
+            text-align: center;
+            padding: 60px 40px;
+        }
+
+        .result-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .result-icon.correct {
+            color: #4caf50;
+        }
+
+        .result-icon.incorrect {
+            color: #ff6b6b;
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .result-title.correct {
+            color: #4caf50;
+        }
+
+        .result-title.incorrect {
+            color: #ff6b6b;
+        }
+
+        .result-details {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .score-display {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score-label {
+            color: #888;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .result-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-btn.play-again {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .result-btn.leaderboard {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .result-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Leaderboard Screen */
+        .leaderboard-screen {
+            padding: 40px;
+        }
+
+        .leaderboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .leaderboard-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .leaderboard-subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        .leaderboard-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .leaderboard-entry:hover {
+            background: #f8f9fa;
+        }
+
+        .leaderboard-entry.top-three {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+
+        .rank-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 20px;
+        }
+
+        .rank-badge.gold {
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: white;
+        }
+
+        .rank-badge.silver {
+            background: linear-gradient(135deg, #c0c0c0, #999999);
+            color: white;
+        }
+
+        .rank-badge.bronze {
+            background: linear-gradient(135deg, #cd7f32, #b8651b);
+            color: white;
+        }
+
+        .rank-badge.regular {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .player-info {
+            flex: 1;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .player-stats {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .player-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .back-btn {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .back-btn button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Screen -->
+        <div class="screen active" id="landingScreen">
+            <div class="landing">
+                <h1 class="logo">AmIaBot</h1>
+                <p class="tagline">Can You Tell Human from AI?</p>
+                <p class="description">
+                    Enter the ultimate Turing Test challenge! You'll have 3 minutes to chat and determine:
+                    are you talking to a human or an AI? Sometimes you'll be the detective, sometimes you'll
+                    be the one trying to prove you're human!
+                </p>
+                <button class="btn-primary" onclick="startGame()">Start the Test</button>
+            </div>
+        </div>
+
+        <!-- Matching Screen -->
+        <div class="screen" id="matchingScreen">
+            <div class="matching">
+                <div class="matching-animation">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="matching-text">Finding Your Match...</div>
+                <div class="matching-status">Connecting to game server</div>
+            </div>
+        </div>
+
+        <!-- Role Assignment Screen -->
+        <div class="screen" id="roleScreen">
+            <div class="role-assignment">
+                <div class="role-badge" id="roleBadge">DETECTIVE</div>
+                <p class="role-description" id="roleDescription">
+                    Your mission: Figure out if you're chatting with a human or an AI bot.
+                    Ask clever questions and look for telltale signs!
+                </p>
+                <p class="role-timer">Starting in <span id="roleCountdown">3</span> seconds...</p>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div class="screen" id="chatScreen">
+            <div class="chat-screen">
+                <div class="chat-header">
+                    <div class="role-indicator" id="chatRole">You are: DETECTIVE</div>
+                    <div class="timer-display" id="chatTimer">3:00</div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will appear here -->
+                </div>
+                <div class="chat-input-area">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            class="chat-input"
+                            id="chatInput"
+                            placeholder="Type your message..."
+                            onkeypress="handleInputKeypress(event)"
+                        >
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+                    </div>
+                    <button class="end-early-btn" id="endEarlyBtn" onclick="endChatEarly()">
+                        End Chat & Make Your Guess
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decision Screen -->
+        <div class="screen" id="decisionScreen">
+            <div class="decision-screen">
+                <h2 class="decision-title">Make Your Decision</h2>
+                <p style="color: #666; margin-bottom: 30px;">Who were you talking to?</p>
+                <div class="decision-buttons">
+                    <div class="decision-btn" id="humanChoice" onclick="selectChoice('human')">
+                        <div class="decision-icon">👤</div>
+                        <div class="decision-label">Human</div>
+                    </div>
+                    <div class="decision-btn" id="botChoice" onclick="selectChoice('bot')">
+                        <div class="decision-icon">🤖</div>
+                        <div class="decision-label">AI Bot</div>
+                    </div>
+                </div>
+                <button class="submit-guess-btn" id="submitGuess" onclick="submitGuess()">
+                    Submit Guess
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="resultsScreen">
+            <div class="results-screen">
+                <div class="result-icon" id="resultIcon">✅</div>
+                <h2 class="result-title" id="resultTitle">Correct!</h2>
+                <p class="result-details" id="resultDetails">
+                    You correctly identified that you were talking to a human!
+                </p>
+                <div class="score-display">
+                    <div class="score-label">Your Score</div>
+                    <div class="score-value" id="scoreValue">1/1</div>
+                </div>
+                <div class="result-actions">
+                    <button class="result-btn play-again" onclick="playAgain()">Play Again</button>
+                    <button class="result-btn leaderboard" onclick="showLeaderboard()">Leaderboard</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div class="screen" id="leaderboardScreen">
+            <div class="leaderboard-screen">
+                <div class="leaderboard-header">
+                    <h2 class="leaderboard-title">🏆 Leaderboard</h2>
+                    <p class="leaderboard-subtitle">Top Detectives & Master Impersonators</p>
+                </div>
+                <div class="leaderboard-table" id="leaderboardTable">
+                    <!-- Leaderboard entries will be inserted here -->
+                </div>
+                <div class="back-btn">
+                    <button onclick="showScreen('landingScreen')">Back to Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            role: null,
+            partner: null,
+            messages: [],
+            startTime: null,
+            endTime: null,
+            guess: null,
+            correct: null,
+            score: { correct: 0, total: 0 },
+            timeRemaining: 180,
+            timerInterval: null
+        };
+
+        // AI Bot Responses
+        const botResponses = [
+            "That's an interesting question! I'd say it depends on the context.",
+            "I haven't really thought about that before. What do you think?",
+            "Hmm, let me think... I'd probably go with the first option.",
+            "Oh wow, that reminds me of something that happened last week!",
+            "I totally agree with you on that one.",
+            "That's a tough one. I'm not entirely sure to be honest.",
+            "Interesting perspective! I hadn't considered it that way.",
+            "Yeah, I know what you mean. It can be pretty confusing sometimes.",
+            "I think most people would probably disagree, but I see your point.",
+            "That's actually pretty funny when you think about it!",
+            "I'm curious - what made you think of that?",
+            "Oh definitely! I've had similar experiences myself.",
+            "That's a great observation. I hadn't noticed that before.",
+            "I wish I had a better answer for you, but I'm not sure.",
+            "You know, I was just thinking about that earlier today!",
+            "That's one way to look at it, I suppose.",
+            "I can see why you'd think that, but I'm not entirely convinced.",
+            "Really? That's surprising! Tell me more.",
+            "Absolutely! Couldn't agree more.",
+            "Hmm, I'm going to have to think about that one."
+        ];
+
+        // Utility Functions
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function getRandomBotResponse() {
+            return botResponses[Math.floor(Math.random() * botResponses.length)];
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Game Flow Functions
+        function startGame() {
+            // Reset game state
+            gameState = {
+                role: null,
+                partner: null,
+                messages: [],
+                startTime: null,
+                endTime: null,
+                guess: null,
+                correct: null,
+                score: gameState.score,
+                timeRemaining: 180,
+                timerInterval: null
+            };
+
+            // Show matching screen
+            showScreen('matchingScreen');
+
+            // Simulate matching process
+            setTimeout(() => {
+                assignRole();
+            }, 5000);
+        }
+
+        function assignRole() {
+            // Randomly assign role
+            const roles = ['detective', 'responder'];
+            gameState.role = roles[Math.floor(Math.random() * roles.length)];
+
+            // Randomly assign partner (for MVP, always bot for detective, human for responder)
+            if (gameState.role === 'detective') {
+                gameState.partner = Math.random() > 0.5 ? 'bot' : 'human';
+            } else {
+                gameState.partner = 'detective';
+            }
+
+            // Show role screen
+            showRoleScreen();
+        }
+
+        function showRoleScreen() {
+            const roleBadge = document.getElementById('roleBadge');
+            const roleDescription = document.getElementById('roleDescription');
+
+            if (gameState.role === 'detective') {
+                roleBadge.textContent = 'DETECTIVE';
+                roleBadge.className = 'role-badge detective';
+                roleDescription.textContent = "Your mission: Figure out if you're chatting with a human or an AI bot. Ask clever questions and look for telltale signs!";
+            } else {
+                roleBadge.textContent = 'RESPONDER';
+                roleBadge.className = 'role-badge responder';
+                roleDescription.textContent = "Your mission: Convince the detective that you're human! Be natural, be yourself, and prove you're not a bot!";
+            }
+
+            showScreen('roleScreen');
+
+            // Countdown before starting chat
+            let countdown = 3;
+            const countdownElement = document.getElementById('roleCountdown');
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                if (countdown === 0) {
+                    clearInterval(countdownInterval);
+                    startChat();
+                }
+            }, 1000);
+        }
+
+        function startChat() {
+            gameState.startTime = Date.now();
+
+            // Update chat header
+            const chatRole = document.getElementById('chatRole');
+            chatRole.textContent = `You are: ${gameState.role.toUpperCase()}`;
+
+            // Clear messages
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+
+            // Show end early button only for detective
+            const endEarlyBtn = document.getElementById('endEarlyBtn');
+            endEarlyBtn.style.display = gameState.role === 'detective' ? 'block' : 'none';
+
+            showScreen('chatScreen');
+
+            // Start timer
+            startTimer();
+
+            // Debug log
+            console.log('Chat started. Role:', gameState.role, 'Partner:', gameState.partner);
+
+            // If partner is bot and user is detective, send initial bot message
+            if (gameState.role === 'detective' && gameState.partner === 'bot') {
+                setTimeout(() => {
+                    receiveBotMessage("Hello! How are you doing today?");
+                }, 1500);
+            }
+
+            // If user is responder, show initial message from detective
+            if (gameState.role === 'responder') {
+                setTimeout(() => {
+                    addMessage("Hi there! Let's have a conversation.", "other");
+                    gameState.messages.push({ text: "Hi there! Let's have a conversation.", sender: 'detective', time: Date.now() });
+                }, 1500);
+            }
+        }
+
+        function startTimer() {
+            gameState.timeRemaining = 180;
+            const timerDisplay = document.getElementById('chatTimer');
+
+            gameState.timerInterval = setInterval(() => {
+                gameState.timeRemaining--;
+                timerDisplay.textContent = formatTime(gameState.timeRemaining);
+
+                // Add warning class when time is running out
+                if (gameState.timeRemaining <= 30) {
+                    timerDisplay.classList.add('warning');
+                }
+
+                if (gameState.timeRemaining === 0) {
+                    clearInterval(gameState.timerInterval);
+                    endChat();
+                }
+            }, 1000);
+        }
+
+        // Detective questions for when user is responder
+        const detectiveQuestions = [
+            "What did you have for breakfast today?",
+            "Tell me about your favorite childhood memory.",
+            "What's your opinion on pineapple pizza?",
+            "If you could travel anywhere, where would you go?",
+            "What's the most embarrassing thing that happened to you?",
+            "Can you describe your morning routine?",
+            "What's your favorite movie and why?",
+            "How do you feel about rainy days?",
+            "What's something that always makes you laugh?",
+            "Describe your perfect weekend.",
+            "What's a skill you wish you had?",
+            "Tell me about your best friend.",
+            "What's your biggest pet peeve?",
+            "How do you handle stress?",
+            "What's your favorite season and why?"
+        ];
+
+        function getRandomDetectiveQuestion() {
+            return detectiveQuestions[Math.floor(Math.random() * detectiveQuestions.length)];
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add message to chat
+            addMessage(message, 'user');
+
+            // Clear input
+            input.value = '';
+
+            // Store message
+            gameState.messages.push({ text: message, sender: 'user', time: Date.now() });
+
+            // If partner is bot and user is detective, generate bot response
+            if (gameState.partner === 'bot' && gameState.role === 'detective') {
+                // Show typing indicator after a short delay
+                setTimeout(() => {
+                    showTypingIndicator();
+                }, 300);
+
+                // Send bot response after typing delay
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    const response = getRandomBotResponse();
+                    receiveBotMessage(response);
+                }, 1500 + Math.random() * 1500);
+            }
+
+            // If user is responder, simulate detective questions
+            if (gameState.role === 'responder') {
+                // Show typing indicator
+                setTimeout(() => {
+                    showTypingIndicator();
+                }, 500);
+
+                // Send detective question
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    const question = getRandomDetectiveQuestion();
+                    addMessage(question, 'other');
+                    gameState.messages.push({ text: question, sender: 'detective', time: Date.now() });
+                }, 2000 + Math.random() * 2000);
+            }
+        }
+
+        function handleInputKeypress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            messageDiv.appendChild(bubble);
+            messageDiv.appendChild(time);
+            chatMessages.appendChild(messageDiv);
+
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function receiveBotMessage(text) {
+            addMessage(text, 'other');
+            gameState.messages.push({ text: text, sender: 'bot', time: Date.now() });
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+
+            // Remove any existing typing indicator
+            const existingIndicator = document.getElementById('typingIndicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            // Create new typing indicator
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator active';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+
+            chatMessages.appendChild(indicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function endChatEarly() {
+            clearInterval(gameState.timerInterval);
+            endChat();
+        }
+
+        function endChat() {
+            gameState.endTime = Date.now();
+
+            if (gameState.role === 'detective') {
+                showScreen('decisionScreen');
+            } else {
+                // For responder, simulate detective's guess
+                const detectorGuess = Math.random() > 0.5;
+                gameState.correct = detectorGuess;
+                showResults();
+            }
+        }
+
+        function selectChoice(choice) {
+            // Remove previous selection
+            document.getElementById('humanChoice').classList.remove('selected');
+            document.getElementById('botChoice').classList.remove('selected');
+
+            // Add selection
+            if (choice === 'human') {
+                document.getElementById('humanChoice').classList.add('selected');
+            } else {
+                document.getElementById('botChoice').classList.add('selected');
+            }
+
+            gameState.guess = choice;
+
+            // Enable submit button
+            const submitBtn = document.getElementById('submitGuess');
+            submitBtn.classList.add('active');
+        }
+
+        function submitGuess() {
+            if (!gameState.guess) return;
+
+            // Check if guess is correct
+            if (gameState.role === 'detective') {
+                if (gameState.partner === 'bot' && gameState.guess === 'bot') {
+                    gameState.correct = true;
+                } else if (gameState.partner === 'human' && gameState.guess === 'human') {
+                    gameState.correct = true;
+                } else {
+                    gameState.correct = false;
+                }
+            }
+
+            showResults();
+        }
+
+        function showResults() {
+            // Update score
+            gameState.score.total++;
+            if (gameState.correct) {
+                gameState.score.correct++;
+            }
+
+            // Update result screen
+            const resultIcon = document.getElementById('resultIcon');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDetails = document.getElementById('resultDetails');
+            const scoreValue = document.getElementById('scoreValue');
+
+            if (gameState.correct) {
+                resultIcon.textContent = '✅';
+                resultIcon.className = 'result-icon correct';
+                resultTitle.textContent = 'Correct!';
+                resultTitle.className = 'result-title correct';
+
+                if (gameState.role === 'detective') {
+                    resultDetails.textContent = `You correctly identified that you were talking to a ${gameState.partner}!`;
+                } else {
+                    resultDetails.textContent = 'The detective believed you were human! Great job!';
+                }
+            } else {
+                resultIcon.textContent = '❌';
+                resultIcon.className = 'result-icon incorrect';
+                resultTitle.textContent = 'Incorrect!';
+                resultTitle.className = 'result-title incorrect';
+
+                if (gameState.role === 'detective') {
+                    const actual = gameState.partner === 'bot' ? 'an AI bot' : 'a human';
+                    resultDetails.textContent = `You were actually talking to ${actual}!`;
+                } else {
+                    resultDetails.textContent = 'The detective figured out you were the responder!';
+                }
+            }
+
+            scoreValue.textContent = `${gameState.score.correct}/${gameState.score.total}`;
+
+            // Update localStorage leaderboard
+            updateLeaderboard();
+
+            showScreen('resultsScreen');
+        }
+
+        function playAgain() {
+            startGame();
+        }
+
+        function updateLeaderboard() {
+            // For MVP, just store in memory (would use database in production)
+            if (!window.leaderboard) {
+                window.leaderboard = [];
+            }
+
+            window.leaderboard.push({
+                name: `Player${Math.floor(Math.random() * 1000)}`,
+                score: gameState.score.correct,
+                total: gameState.score.total,
+                accuracy: Math.round((gameState.score.correct / gameState.score.total) * 100),
+                timestamp: Date.now()
+            });
+
+            // Sort by score
+            window.leaderboard.sort((a, b) => b.score - a.score);
+
+            // Keep top 10
+            window.leaderboard = window.leaderboard.slice(0, 10);
+        }
+
+        function showLeaderboard() {
+            const leaderboardTable = document.getElementById('leaderboardTable');
+            leaderboardTable.innerHTML = '';
+
+            // Add sample data if no games played yet
+            if (!window.leaderboard || window.leaderboard.length === 0) {
+                window.leaderboard = [
+                    { name: 'AliceAI', score: 15, total: 18, accuracy: 83 },
+                    { name: 'BobBot', score: 14, total: 17, accuracy: 82 },
+                    { name: 'Charlie', score: 12, total: 15, accuracy: 80 },
+                    { name: 'Diana', score: 10, total: 14, accuracy: 71 },
+                    { name: 'Eve', score: 9, total: 12, accuracy: 75 }
+                ];
+            }
+
+            window.leaderboard.forEach((player, index) => {
+                const entry = document.createElement('div');
+                entry.className = 'leaderboard-entry';
+                if (index < 3) entry.classList.add('top-three');
+
+                const rankBadge = document.createElement('div');
+                rankBadge.className = 'rank-badge';
+                if (index === 0) rankBadge.classList.add('gold');
+                else if (index === 1) rankBadge.classList.add('silver');
+                else if (index === 2) rankBadge.classList.add('bronze');
+                else rankBadge.classList.add('regular');
+                rankBadge.textContent = index + 1;
+
+                const playerInfo = document.createElement('div');
+                playerInfo.className = 'player-info';
+                playerInfo.innerHTML = `
+                    <div class="player-name">${player.name}</div>
+                    <div class="player-stats">Accuracy: ${player.accuracy}% • Games: ${player.total}</div>
+                `;
+
+                const playerScore = document.createElement('div');
+                playerScore.className = 'player-score';
+                playerScore.textContent = player.score;
+
+                entry.appendChild(rankBadge);
+                entry.appendChild(playerInfo);
+                entry.appendChild(playerScore);
+
+                leaderboardTable.appendChild(entry);
+            });
+
+            showScreen('leaderboardScreen');
+        }
+
+        // Initialize
+        console.log('AmIaBot MVP loaded and ready!');
+    </script>
+</body>
+</html>
