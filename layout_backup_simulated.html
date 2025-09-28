@@ -843,6 +843,57 @@
             "Hmm, I'm going to have to think about that one."
         ];
 
+        // AI Configuration - Add your OpenAI API key here
+        const AI_CONFIG = {
+            openaiApiKey: "YOUR_API_KEY_HERE", // Add your OpenAI API key here
+            useFreeAPI: false
+        };
+
+        // Enhanced AI Response Generation
+        async function generateAIResponse(message, conversationHistory = []) {
+            if (!AI_CONFIG.openaiApiKey) {
+                return getRandomBotResponse(); // Fallback to hardcoded responses
+            }
+
+            try {
+                const messages = [
+                    {
+                        role: "system",
+                        content: "You are a human having a casual conversation. Be natural, conversational, and human-like. Don't mention that you're an AI. Keep responses brief (1-2 sentences). Show personality, use casual language, and occasionally make small mistakes or use filler words like 'um', 'like', 'you know'."
+                    },
+                    ...conversationHistory.slice(-5).map(msg => ({
+                        role: msg.sender === 'user' ? 'user' : 'assistant',
+                        content: msg.text
+                    })),
+                    { role: "user", content: message }
+                ];
+
+                const response = await fetch('https://corsproxy.io/?https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${AI_CONFIG.openaiApiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: "gpt-3.5-turbo",
+                        messages: messages,
+                        temperature: 0.9,
+                        max_tokens: 100
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('AI API error:', error);
+                return getRandomBotResponse();
+            }
+        }
+
         // Utility Functions
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(screen => {
@@ -1036,9 +1087,9 @@
                 }, 300);
 
                 // Send bot response after typing delay
-                setTimeout(() => {
+                setTimeout(async () => {
                     hideTypingIndicator();
-                    const response = getRandomBotResponse();
+                    const response = await generateAIResponse(message, gameState.messages);
                     receiveBotMessage(response);
                 }, 1500 + Math.random() * 1500);
             }
