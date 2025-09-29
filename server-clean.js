@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
         req.on("end", async () => {
             try {
                 const data = JSON.parse(body);
-                const response = await getAIResponse(data.message);
+                const response = await getAIResponse(data.message, data.conversationHistory || []);
                 
                 setTimeout(() => {
                     res.writeHead(200, {"Content-Type": "application/json"});
@@ -51,25 +51,73 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-async function getAIResponse(message) {
-    try {
-        const response = await fetch('/api/chat', {
+function getAIResponse(message, conversationHistory = []) {
+    return new Promise((resolve, reject) => {
+        // Prepare the conversation for OpenAI
+        const messages = [
+            {
+                role: "system",
+                content: "You are participating in a Turing Test game. You are an AI trying to convince a human that you are also human. Be natural, conversational, and human-like. Don't reveal that you're an AI. Respond as a normal person would."
+            }
+        ];
+
+        // Add conversation history
+        conversationHistory.forEach(msg => {
+            if (msg.sender === 'user') {
+                messages.push({ role: "user", content: msg.text });
+            } else if (msg.sender === 'bot') {
+                messages.push({ role: "assistant", content: msg.text });
+            }
+        });
+
+        // Add current message
+        messages.push({ role: "user", content: message });
+
+        const postData = JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: messages,
+            max_tokens: 150,
+            temperature: 0.8
+        });
+
+        const options = {
+            hostname: 'api.openai.com',
+            port: 443,
+            path: '/v1/chat/completions',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: message,
-                conversationHistory: gameState.messages || []
-            })
+                'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY,
+                'Content-Length': Buffer.byteLength(postData)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                try {
+                    const response = JSON.parse(data);
+                    if (response.choices && response.choices[0] && response.choices[0].message) {
+                        resolve(response.choices[0].message.content);
+                    } else {
+                        resolve("I'm having trouble thinking right now. Can you try again?");
+                    }
+                } catch (error) {
+                    resolve("I'm having trouble thinking right now. Can you try again?");
+                }
+            });
         });
-        
-        const data = await response.json();
-        return data.response || "I'm having trouble thinking right now.";
-    } catch (error) {
-        console.error('AI request failed:', error);
-        return "I'm having trouble thinking right now.";
-    }
+
+        req.on('error', (error) => {
+            resolve("I'm having trouble thinking right now. Can you try again?");
+        });
+
+        req.write(postData);
+        req.end();
+    });
 }
 server.listen(PORT, () => {
     console.log('Server running on port ' + PORT);
