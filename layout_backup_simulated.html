@@ -843,42 +843,22 @@
             "Hmm, I'm going to have to think about that one."
         ];
 
-        // AI Configuration - Add your OpenAI API key here
+        // AI Configuration for Server-based API calls
         const AI_CONFIG = {
-            openaiApiKey: "YOUR_API_KEY_HERE", // Add your OpenAI API key here
-            useFreeAPI: false
+            serverUrl: window.location.origin // Use current domain
         };
 
-        // Enhanced AI Response Generation
+        // Enhanced AI Response Generation - Now uses server
         async function generateAIResponse(message, conversationHistory = []) {
-            if (!AI_CONFIG.openaiApiKey) {
-                return getRandomBotResponse(); // Fallback to hardcoded responses
-            }
-
             try {
-                const messages = [
-                    {
-                        role: "system",
-                        content: "You are a human having a casual conversation. Be natural, conversational, and human-like. Don't mention that you're an AI. Keep responses brief (1-2 sentences). Show personality, use casual language, and occasionally make small mistakes or use filler words like 'um', 'like', 'you know'."
-                    },
-                    ...conversationHistory.slice(-5).map(msg => ({
-                        role: msg.sender === 'user' ? 'user' : 'assistant',
-                        content: msg.text
-                    })),
-                    { role: "user", content: message }
-                ];
-
-                const response = await fetch('https://corsproxy.io/?https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
+                const response = await fetch(`${AI_CONFIG.serverUrl}/api/chat`, {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${AI_CONFIG.openaiApiKey}`
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        model: "gpt-3.5-turbo",
-                        messages: messages,
-                        temperature: 0.9,
-                        max_tokens: 100
+                        message: message,
+                        conversationHistory: conversationHistory
                     })
                 });
 
@@ -887,9 +867,9 @@
                 }
 
                 const data = await response.json();
-                return data.choices[0].message.content;
+                return data.response;
             } catch (error) {
-                console.error('AI API error:', error);
+                console.error("AI API error:", error);
                 return getRandomBotResponse();
             }
         }
