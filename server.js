@@ -197,8 +197,8 @@ io.on('connection', (socket) => {
         // Store message in game session
         game.addMessage(isDetective ? 'detective' : 'responder', data.message);
 
-        if (game.isAI && !isDetective) {
-            // If responder is AI, generate AI response
+        if (game.isAI && isDetective) {
+            // If it's an AI game AND you're the detective, generate AI response
             const bot = new AIBot();
             bot.currentPersonality = game.aiPersonality;
 
