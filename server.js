@@ -490,6 +490,58 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
+// AI Chat endpoint for single-player mode
+app.post('/api/chat', async (req, res) => {
+    try {
+        const { message, conversationHistory = [] } = req.body;
+        
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
+
+        // Check if OpenAI API key is available
+        if (!process.env.OPENAI_API_KEY) {
+            console.error('OpenAI API key not found');
+            return res.status(500).json({ error: 'AI service not configured' });
+        }
+
+        // Prepare conversation context
+        const messages = [
+            {
+                role: "system",
+                content: "You are participating in a Turing Test game. You are an AI trying to convince a human that you are also human. Be natural, conversational, and human-like. Don't reveal that you're an AI. Respond as a normal person would."
+            }
+        ];
+
+        // Add conversation history
+        conversationHistory.forEach(msg => {
+            if (msg.sender === 'user') {
+                messages.push({ role: "user", content: msg.text });
+            } else if (msg.sender === 'bot') {
+                messages.push({ role: "assistant", content: msg.text });
+            }
+        });
+
+        // Add current message
+        messages.push({ role: "user", content: message });
+
+        // Call OpenAI API
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: messages,
+            max_tokens: 150,
+            temperature: 0.8
+        });
+
+        const response = completion.choices[0].message.content;
+        
+        res.json({ response: response });
+    } catch (error) {
+        console.error('AI API error:', error);
+        res.status(500).json({ error: 'Failed to generate AI response' });
+    }
+});
+
 // Start server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
