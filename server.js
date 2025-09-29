@@ -315,10 +315,12 @@ function matchPlayer(socket) {
     // Emit matching started event
     socket.emit('matching-started');
 
-    // Simulate matching delay
-    setTimeout(() => {
-        // Check if there's someone waiting
-        if (gameState.waitingQueue.length > 0) {
+    // Check if there's someone waiting
+    if (gameState.waitingQueue.length > 0) {
+        // Random choice: human or bot when humans are available
+        const chooseHuman = Math.random() > 0.5;
+        
+        if (chooseHuman) {
             // Match with human
             const opponentId = gameState.waitingQueue.shift();
             const opponent = gameState.userSockets.get(opponentId);
@@ -330,26 +332,13 @@ function matchPlayer(socket) {
                 matchPlayer(socket);
             }
         } else {
-            // Randomly decide: wait for human or play with AI
-            const waitForHuman = Math.random() > 0.5;
-
-            if (waitForHuman && gameState.waitingQueue.length === 0) {
-                // Add to waiting queue
-                gameState.waitingQueue.push(socket.id);
-
-                // Set timeout to match with AI if no one joins
-                setTimeout(() => {
-                    if (gameState.waitingQueue.includes(socket.id)) {
-                        gameState.waitingQueue = gameState.waitingQueue.filter(id => id !== socket.id);
-                        createAIGame(socket);
-                    }
-                }, 3000);
-            } else {
-                // Create AI game immediately
-                createAIGame(socket);
-            }
+            // Choose bot instead
+            createAIGame(socket);
         }
-    }, 5000); // 5 second matching animation
+    } else {
+        // No humans waiting, so always get a bot
+        createAIGame(socket);
+    }
 }
 
 // Create game with human opponent
