@@ -337,7 +337,16 @@ function matchPlayer(socket) {
         }
     } else {
         // No humans waiting, so always get a bot
-        createAIGame(socket);
+        // Add to waiting queue first to maintain consistent delay
+        gameState.waitingQueue.push(socket.id);
+        
+        // Set timeout to create AI game after consistent delay
+        setTimeout(() => {
+            if (gameState.waitingQueue.includes(socket.id)) {
+                gameState.waitingQueue = gameState.waitingQueue.filter(id => id !== socket.id);
+                createAIGame(socket);
+            }
+        }, 3000); // 3 second delay to match human matching experience
     }
 }
 
